@@ -191,7 +191,36 @@ const transObserver = new IntersectionObserver(
   { threshold: 0.2 }
 );
 transitions.forEach(el => transObserver.observe(el));
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/service-worker.js")
+    .then(reg => console.log("Service Worker registered:", reg.scope))
+    .catch(err => console.log("Service Worker registration failed:", err));
+}
+let deferredPrompt;
 
+window.addEventListener('beforeinstallprompt', (e) => {
+  // Prevent automatic prompt
+  e.preventDefault();
+  deferredPrompt = e;
+
+  // Show the install button
+  const installBtn = document.getElementById('installBtn');
+  if (installBtn) installBtn.style.display = 'block';
+
+  installBtn.addEventListener('click', () => {
+    // Hide the button
+    installBtn.style.display = 'none';
+
+    // Show the install prompt
+    deferredPrompt.prompt();
+
+    // Check what the user chose
+    deferredPrompt.userChoice.then(choice => {
+      console.log('User choice:', choice.outcome);
+      deferredPrompt = null;
+    });
+  });
+});
 
 
 
